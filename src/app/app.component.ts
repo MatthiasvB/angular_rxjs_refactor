@@ -56,7 +56,6 @@ export class AppComponent {
   ) {
     this.refreshState();
   }
-
   
   /*
    * We have a problem: The data layout in the "backend"
@@ -72,7 +71,7 @@ export class AppComponent {
    * is just a thin wrapper around the HTTP-client. That's why our component
    * does way too much work.
    */
-  private refreshState() {
+  refreshState() {
     this.dataService.getState().subscribe(state => {
       this.clients = state.users.map(user => ({ user, cars: [] }));
       this.freeCars = state.cars;

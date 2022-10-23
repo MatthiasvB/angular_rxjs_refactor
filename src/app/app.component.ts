@@ -115,6 +115,18 @@ export class AppComponent {
        */
       return;
     }
+
+    /*
+     * Why do we need to save userId and carId in local variables?
+     *
+     * Because we can't be sure that the values of this.selectedCar.id
+     * and this.selectedClient.id won't change while the HTTP request
+     * is in flight.
+     * 
+     * This is a problem that we can't solve with types. Typescript is right
+     * to call it out. But there are cases where our lazy types will
+     * make it harder for us than necessary.
+     */
     const [userId, carId] = [this.selectedClient.id, this.selectedCar.id];
     /*
      * This is were it gets BAD.
@@ -155,6 +167,7 @@ export class AppComponent {
         };
         this.clients?.forEach(client => {
           if (client.user.id === binding.userId) {
+            // Why the elvis operator "?."? Because we were lazy and marked the field as optional.
             const car = this.freeCars?.find(car => car.id === binding.carId);
             if (car) {
               client.cars.push(car);
@@ -189,11 +202,31 @@ export class AppComponent {
   removeCarFromUser($event: MouseEvent, car: Car, user: User) {
     $event.stopPropagation();
     if (!user.id || !car.id) {
+      /*
+       * Why is this check necessary? 
+       * 
+       * Because we were lazy and marked the IDs of perfectly fine
+       * users and cars as optional. But they're not optional.
+       * 
+       * The only time they are optional, is when we create a new user
+       * or a new car. But in this case, we are not creating a new user
+       * or a new car. We are removing a car from a user.
+       * 
+       * So we can be sure that the IDs are present.
+       * 
+       * But we can't be sure, because we were lazy and marked them as optional.
+       * 
+       * We shouldn't be that lazy.
+       * 
+       * Being that lazy hides intend, and makes it harder to understand
+       * what is going on. This leads to bugs. Those we dislike.
+       */
       return;
     }
     // Unhandled subscription, again!
     this.dataService.unassignCarFromUser(user.id, car.id).subscribe({
       next: () => {
+        // Clients shouldn't be optional
         this.clients?.forEach(client => {
           if (client.user.id === user.id) {
             client.cars = client.cars.filter(c => c.id !== car.id);
@@ -240,6 +273,15 @@ export class AppComponent {
         next: () => {
           // Again, too much work for a component
           const clientIndex = this.clients?.findIndex(client => client.user.id === this.selectedClient?.id);
+          /* 
+           * Again, checking for the presence of the clients-array is unnessesary work.
+           *
+           * We only do it to make TypeScript narrow the type of `this.clients`.
+           * 
+           * That means that we do run-time work to fix a compile-time problem.
+           * 
+           * Not good.
+           */
           if (clientIndex !== undefined && clientIndex !== -1 && this.clients) {
             this.clients[clientIndex] = {
               user: { id: clientId, firstName, lastName, email },
@@ -300,10 +342,13 @@ export class AppComponent {
          */
         this.dataService.getAllUsers().subscribe(users => {
           this.clients = users.map(user => ({ user, cars: [] }));
+          // ...
           this.clients?.forEach(client => {
             if (!client.user.id) {
+              // ...
               return;
             }
+            // Unhandled subscription, inside another subscription, inside another subscription.
             this.dataService.getCarsByUserId(client.user.id).subscribe(cars => {
               client.cars = cars;
             });

@@ -33,7 +33,7 @@ export class AppComponent {
     this.refreshState();
   }
 
-  private refreshState() {
+  refreshState() {
     this.dataService.getState().subscribe(state => {
       this.clients = state.users.map(user => ({ user, cars: [] }));
       this.freeCars = state.cars;

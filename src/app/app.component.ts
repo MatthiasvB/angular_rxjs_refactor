@@ -139,8 +139,8 @@ export class AppComponent {
      * Every single time, until the observable completes, errors or
      * we unsubscribe.
      * 
-     * This means, that if we subscribe to an observable, we have to
-     * make sure to unsubscribe from it, when we don't need it anymore.
+     * This means that if we subscribe to an observable, we have to
+     * make sure to unsubscribe from it when we don't need it anymore.
      * 
      * Otherwise, we will have memory leaks.
      * 
@@ -148,12 +148,12 @@ export class AppComponent {
      * to the subscription.
      * 
      * HERE, this is fine, because IF we KNOW that this is in fact a HTTP request,
-     * we can be sure that the observable will complete, because the HTTP request
+     * we can be sure that the Observable will complete, because the HTTP request
      * will complete.
      * 
      * But this is not always the case. Adapting this style of programming to
-     * other types of observables will lead to memory leaks. And if the service
-     * changes, we may not even notice that now the observable doesn't complete.
+     * other types of Observables will lead to memory leaks. And if the service
+     * changes, we may not even notice that now the Observable doesn't complete.
      * 
      * We need to find a better solution.
      */
@@ -208,8 +208,8 @@ export class AppComponent {
        * Because we were lazy and marked the IDs of perfectly fine
        * users and cars as optional. But they're not optional.
        * 
-       * The only time they are optional, is when we create a new user
-       * or a new car. But in this case, we are not creating a new user
+       * The only time they are optional is when we create a new user
+       * or a new car. But in this case we are not creating a new user
        * or a new car. We are removing a car from a user.
        * 
        * So we can be sure that the IDs are present.
@@ -218,7 +218,7 @@ export class AppComponent {
        * 
        * We shouldn't be that lazy.
        * 
-       * Being that lazy hides intend, and makes it harder to understand
+       * Being that lazy hides intent, and makes it harder to understand
        * what is going on. This leads to bugs. Those we dislike.
        */
       return;
@@ -323,20 +323,20 @@ export class AppComponent {
          * they can very easily lead to memory leaks, and are always avoidable.
          * 
          * In fact, using this pattern is a sign that the programmer doesn't
-         * understand the "observable philosophy".
+         * understand the "Observable philosophy".
          * 
          * It is common to see this pattern in code that was written by people
-         * who are used to working with promises, and are now forced to use observables.
-         * So they study the API, and try to find a way to use it in a way that
-         * is similar to how they used promises.
+         * who are used to working with Promises, and are now forced to use Observables.
+         * So they study the API and try to find a way to use it in a way that
+         * is similar to how they used Promises.
          * 
-         * But the whole point of observables is that they are much more powerful,
+         * But the whole point of Observables is that they are much more powerful,
          * and have to be applied in a radically different way.
          * 
-         * In fact, code that properly uses observables looks very different from
-         * code that uses promises.
+         * In fact, code that properly uses Observables looks very different from
+         * code that uses Promises.
          * 
-         * The best way to learn how to use observables is to strictly avoid
+         * The best way to learn how to use Observables is to strictly avoid
          * typical anti-patterns, even if it is not strictly necessary. This is
          * one such anti-pattern.
          */

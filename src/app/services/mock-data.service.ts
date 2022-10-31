@@ -1,7 +1,7 @@
 import { state } from '@angular/animations';
 import { Injectable } from '@angular/core';
 import { delay, of, throwError } from 'rxjs';
-import { Car, State, User, UserCarBinding } from '../shared/types';
+import { Car, Create, State, User, UserCarBinding } from '../shared/types';
 import { createUUID } from '../shared/utils';
 import { initialCars, initialUsers } from './mock-data';
 import { jumble } from './mock-data-jumbler';
@@ -22,7 +22,7 @@ export class MockDataService {
   constructor() {
     setInterval(() => {
       this.mockState = jumble(this.mockState)
-    }, 1_000);
+    }, 5_000);
   }
 
   private delayedObs$<T>(data: T) {
@@ -41,7 +41,7 @@ export class MockDataService {
     return this.delayedObs$(this.mockState.users.find(user => user.id === id));
   }
 
-  addUser(user: User) {
+  addUser(user: Create<User>) {
     if (this.mockState.users.find(u => u.email === user.email)) {
       return this.error$(`User with email ${user.email} already exists`);
     }
@@ -76,7 +76,7 @@ export class MockDataService {
     return this.delayedObs$(this.mockState.cars.find(car => car.id === id));
   }
 
-  addCar(car: Car) {
+  addCar(car: Create<Car>) {
     const id = createUUID();
     const newCar = { ...car, id };
     this.mockState.cars.push(newCar);

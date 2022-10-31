@@ -1,15 +1,20 @@
 export interface User {
-    id?: string,
+    id: string,
     firstName: string,
     lastName: string,
     email: string,
 }
 
 export interface Car {
-    id?: string;
+    id: string;
     make: string;
     model: string;
     year: number;
+}
+
+export interface Client {
+    user: User;
+    cars: Car[];
 }
 
 export interface UserCarBinding {
@@ -23,3 +28,5 @@ export interface State {
     cars: Car[];
     userCarBindings: UserCarBinding[];
 }
+
+export type Create<T extends { id: string }> = Omit<T, 'id'>;

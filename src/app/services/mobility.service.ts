@@ -83,11 +83,16 @@ export class MobilityService {
     share()
   );
 
-  private readonly userRemoved$ = this.removeUser$$.pipe(
+  private readonly userRemoved$: Observable<Errors | [string, Car[]]> = this.removeUser$$.pipe(
     switchMap(user => this.dataService.deleteUser(user).pipe(
-      map(() => user.id),
-      catchError(() => of(Errors.OutdatedData)),
-    )),
+      switchMap(() => this.dataService.getCarsByUserId(user.id).pipe(
+        map(cars => {
+          const x: [string, Car[]] = [user.id, cars];
+          return x;
+        }),
+        catchError(() => of(Errors.CannotFetchData)),
+      )))),
+    catchError(() => of(Errors.OutdatedData)),
   ).pipe(
     share()
   );
@@ -151,8 +156,8 @@ export class MobilityService {
       map(user => (clients: Client[]) => clients.map(client => client.user.id === user.id ? { user, cars: client.cars } : client))
     ),
     this.userRemoved$.pipe(
-      filter((userId): userId is string => typeof userId === 'string'),
-      map(userId => (clients: Client[]) => clients.filter(client => client.user.id !== userId))
+      filter((arr): arr is [string, Car[]] => typeof arr !== 'number'),
+      map(([userId]) => (clients: Client[]) => clients.filter(client => client.user.id !== userId))
     ),
     this.carRemovedFromUser$.pipe(
       filter((arg): arg is { car: Car, userId: string } => typeof arg !== 'number'),
@@ -203,6 +208,10 @@ export class MobilityService {
     this.carRemovedFromUser$.pipe(
       filter((arg): arg is { car: Car, userId: string } => typeof arg !== 'number'),
       map(({ car }) => (cars: Car[]) => [...cars, car])
+    ),
+    this.userRemoved$.pipe(
+      filter((arr): arr is [string, Car[]] => typeof arr !== 'number'),
+      map(([, cars]) => (freeCars: Car[]) => [...freeCars, ...cars])
     ),
   ).pipe(
     scan((cars, modifier) => modifier(cars), this.initialFreeCars),

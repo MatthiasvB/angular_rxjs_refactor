@@ -179,6 +179,13 @@ export class AppComponent {
             });
           });
         });
+        // get free cars
+        this.dataService.getAllCars().subscribe(cars => {
+          this.clients?.forEach(client => {
+            cars = cars.filter(car => !client.cars.find(c => c.id === car.id));
+          });
+          this.freeCars = cars;
+        });
       },
       error: err => {
         if (window.confirm("This user can not be deleted. Refresh the page?")) {

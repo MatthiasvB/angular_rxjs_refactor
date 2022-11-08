@@ -179,7 +179,7 @@ export class AppComponent implements OnDestroy {
     share()
   );
 
-  clients$ = merge(
+  readonly clients$ = merge(
     this.refresh$.pipe(
       startWith(undefined),
       switchMap(() => this.dataService.getAllUsers().pipe(

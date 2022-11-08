@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { catchError, connectable, filter, forkJoin, map, merge, Observable, of, scan, share, shareReplay, startWith, Subject, switchMap, withLatestFrom } from 'rxjs';
 import { Errors } from '../shared/enums';
 import { Car, Client, Create, User } from '../shared/types';
-import { MockDataService } from './mock-data.service';
+import { ReactiveFluxCacheService } from './mock-data.service';
 
 @Injectable({
   providedIn: 'root'
@@ -110,7 +110,7 @@ export class MobilityService {
   );
 
   private readonly carAssignedToUser$ = this.assignCarToUser$$.pipe(
-    switchMap(({ carId, userId }) => this.dataService.assignCarToUser$(userId, carId).pipe(
+    switchMap(({ carId, userId }) => this.dataService.assignCarToUser(userId, carId).pipe(
       switchMap(() => this.dataService.getCarById(carId).pipe(
         map(car => car ? { car, userId } : Errors.EmptyResponse),
         catchError(() => of(Errors.CannotFetchData)),
@@ -234,7 +234,7 @@ export class MobilityService {
 
   constructor(
     // MockDataService pretends to perform HTTP requests
-    private readonly dataService: MockDataService,
+    private readonly dataService: ReactiveFluxCacheService,
   ) {
     connectable(merge(this.clients$, this.freeCars$, this.errors$)).connect();
   }

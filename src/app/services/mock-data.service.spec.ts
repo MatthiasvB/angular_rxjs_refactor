@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { MockDataService } from './mock-data.service';
+import { ReactiveFluxCacheService } from './mock-data.service';
 
 describe('MockDataService', () => {
-  let service: MockDataService;
+  let service: ReactiveFluxCacheService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(MockDataService);
+    service = TestBed.inject(ReactiveFluxCacheService);
   });
 
   it('should be created', () => {

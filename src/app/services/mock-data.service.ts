@@ -33,15 +33,15 @@ export class MockDataService {
     return throwError(() => new Error(message));
   }
 
-  getAllUsers() {
+  getAllUsers$() {
     return this.delayedObs$(this.mockState.users);
   }
 
-  getUserById(id: string) {
+  getUserById$(id: string) {
     return this.delayedObs$(this.mockState.users.find(user => user.id === id));
   }
 
-  addUser(user: Create<User>) {
+  addUser$(user: Create<User>) {
     if (this.mockState.users.find(u => u.email === user.email)) {
       return this.error$(`User with email ${user.email} already exists`);
     }
@@ -51,7 +51,7 @@ export class MockDataService {
     return this.delayedObs$(id);
   }
 
-  updateUser(user: User) {
+  updateUser$(user: User) {
     if (!user.id) {
       this.error$('User has no id');
     }
@@ -60,7 +60,7 @@ export class MockDataService {
     return this.delayedObs$({ ok: true });
   }
 
-  deleteUser(user: User) {
+  deleteUser$(user: User) {
     if (!user.id) {
       this.error$('User has no id');
     }
@@ -68,39 +68,39 @@ export class MockDataService {
     return this.delayedObs$({ ok: true });
   }
 
-  getAllCars() {
+  getAllCars$() {
     return this.delayedObs$([...this.mockState.cars]);
   }
 
-  getCarById(id: string) {
+  getCarById$(id: string) {
     return this.delayedObs$(this.mockState.cars.find(car => car.id === id));
   }
 
-  addCar(car: Create<Car>) {
+  addCar$(car: Create<Car>) {
     const id = createUUID();
     const newCar = { ...car, id };
     this.mockState.cars.push(newCar);
     return this.delayedObs$(id);
   }
 
-  updateCar(car: Car) {
+  updateCar$(car: Car) {
     const index = this.mockState.cars.findIndex(c => c.id === car.id);
     this.mockState.cars[index] = car;
     return this.delayedObs$({ ok: true });
   }
 
-  deleteCar(id: string) {
+  deleteCar$(id: string) {
     this.mockState.cars = this.mockState.cars.filter(car => car.id !== id);
     return this.delayedObs$({ ok: true });
   }
 
-  getCarsByUserId(userId: string) {
+  getCarsByUserId$(userId: string) {
     const userCarBindings = this.mockState.userCarBindings.filter(binding => binding.userId === userId);
     const cars = userCarBindings.map(binding => this.mockState.cars.find(car => car.id === binding.carId)).filter((car): car is Car => !!car);
     return this.delayedObs$([...cars]);
   }
 
-  assignCarToUser(userId: string, carId: string) {
+  assignCarToUser$(userId: string, carId: string) {
     const binding = this.mockState.userCarBindings.find(binding => binding.carId === carId);
     if (binding) {
       return this.error$('Car is already assigned to a user');
@@ -117,7 +117,7 @@ export class MockDataService {
     return this.delayedObs$(id);
   }
 
-  unassignCarFromUser(userId: string, carId: string) {
+  unassignCarFromUser$(userId: string, carId: string) {
     const length = this.mockState.userCarBindings.length;
     this.mockState.userCarBindings = this.mockState.userCarBindings.filter(binding => !(binding.userId === userId && binding.carId === carId));
     const newLength = this.mockState.userCarBindings.length;
@@ -127,7 +127,7 @@ export class MockDataService {
     return this.delayedObs$({ ok: true });
   }
 
-  getUserCarBindingById(id: string) {
+  getUserCarBindingById$(id: string) {
     const binding = this.mockState.userCarBindings.find(binding => binding.id === id);
     if (!binding) {
       return this.error$('Binding not found');
@@ -135,7 +135,7 @@ export class MockDataService {
     return this.delayedObs$({ ...binding });
   }
 
-  unassignCarFromUserById(bindingId: string) {
+  unassignCarFromUserById$(bindingId: string) {
     const length = this.mockState.userCarBindings.length;
     this.mockState.userCarBindings = this.mockState.userCarBindings.filter(binding => binding.id !== bindingId);
     const newLength = this.mockState.userCarBindings.length;
@@ -145,7 +145,7 @@ export class MockDataService {
     return this.delayedObs$({ ok: true });
   }
 
-  getState() {
+  getState$() {
     return this.delayedObs$({
       users: [...this.mockState.users],
       cars: [...this.mockState.cars],

@@ -29,7 +29,7 @@ export class MobilityService {
   );
 
   private readonly carRemoved$ = this.removeCar$$.pipe(
-    switchMap(carId => this.dataService.deleteCar(carId).pipe(
+    switchMap(carId => this.dataService.deleteCar$(carId).pipe(
       map(() => carId),
       catchError(() => of(Errors.OutdatedData)),
     )),
@@ -39,7 +39,7 @@ export class MobilityService {
 
   private readonly carUpdated$ = this.updateCar$$.pipe(
     switchMap(car =>
-      this.dataService.updateCar(car).pipe(
+      this.dataService.updateCar$(car).pipe(
         map(() => car),
         catchError(() => of(Errors.OutdatedData)),
       )
@@ -49,8 +49,8 @@ export class MobilityService {
   );
 
   private readonly carAdded$ = this.addCar$$.pipe(
-    switchMap(car => this.dataService.addCar(car).pipe(
-      switchMap(carId => this.dataService.getCarById(carId).pipe(
+    switchMap(car => this.dataService.addCar$(car).pipe(
+      switchMap(carId => this.dataService.getCarById$(carId).pipe(
         catchError(() => of(Errors.CannotFetchData)),
       )),
       map(car => car ?? Errors.EmptyResponse),
@@ -61,8 +61,8 @@ export class MobilityService {
   );
 
   private readonly userAdded$ = this.addUser$$.pipe(
-    switchMap(user => this.dataService.addUser(user).pipe(
-      switchMap(userId => this.dataService.getUserById(userId).pipe(
+    switchMap(user => this.dataService.addUser$(user).pipe(
+      switchMap(userId => this.dataService.getUserById$(userId).pipe(
         catchError(() => of(Errors.CannotFetchData)),
       )),
       map(user => user ?? Errors.EmptyResponse),
@@ -74,7 +74,7 @@ export class MobilityService {
 
   private readonly userUpdated$ = this.updateUser$$.pipe(
     switchMap(user =>
-      this.dataService.updateUser(user).pipe(
+      this.dataService.updateUser$(user).pipe(
         map(() => user),
         catchError(() => of(Errors.OutdatedData)),
       )
@@ -84,7 +84,7 @@ export class MobilityService {
   );
 
   private readonly userRemoved$ = this.removeUser$$.pipe(
-    switchMap(user => this.dataService.deleteUser(user).pipe(
+    switchMap(user => this.dataService.deleteUser$(user).pipe(
       map(() => user.id),
       catchError(() => of(Errors.OutdatedData)),
     )),
@@ -93,8 +93,8 @@ export class MobilityService {
   );
 
   private readonly carRemovedFromUser$ = this.removeCarFromUser$$.pipe(
-    switchMap(({ carId, userId }) => this.dataService.unassignCarFromUser(userId, carId).pipe(
-      switchMap(() => this.dataService.getCarById(carId).pipe(
+    switchMap(({ carId, userId }) => this.dataService.unassignCarFromUser$(userId, carId).pipe(
+      switchMap(() => this.dataService.getCarById$(carId).pipe(
         map(car => car ? { car, userId } : Errors.EmptyResponse),
         catchError(() => of(Errors.CannotFetchData)),
       )),
@@ -105,8 +105,8 @@ export class MobilityService {
   );
 
   private readonly carAssignedToUser$ = this.assignCarToUser$$.pipe(
-    switchMap(({ carId, userId }) => this.dataService.assignCarToUser(userId, carId).pipe(
-      switchMap(() => this.dataService.getCarById(carId).pipe(
+    switchMap(({ carId, userId }) => this.dataService.assignCarToUser$(userId, carId).pipe(
+      switchMap(() => this.dataService.getCarById$(carId).pipe(
         map(car => car ? { car, userId } : Errors.EmptyResponse),
         catchError(() => of(Errors.CannotFetchData)),
       )),
@@ -119,9 +119,9 @@ export class MobilityService {
   private readonly clients$ = merge(
     this.refresh$.pipe(
       startWith(undefined),
-      switchMap(() => this.dataService.getAllUsers().pipe(
+      switchMap(() => this.dataService.getAllUsers$().pipe(
         switchMap(users => forkJoin(users.map(user =>
-          this.dataService.getCarsByUserId(user.id).pipe(
+          this.dataService.getCarsByUserId$(user.id).pipe(
             map(cars => ({ user, cars }))
           )
         )))
@@ -179,7 +179,7 @@ export class MobilityService {
     this.refresh$.pipe(
       startWith(undefined),
       withLatestFrom(this.clients$),
-      switchMap(([_, clients]) => this.dataService.getAllCars().pipe(
+      switchMap(([_, clients]) => this.dataService.getAllCars$().pipe(
         map(cars => cars.filter(car => !clients.some(client => client.cars.some(c => c.id === car.id)))),
       )),
       map(cars => (arg: unknown) => cars)

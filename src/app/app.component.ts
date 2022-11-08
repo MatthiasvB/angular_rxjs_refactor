@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { asyncScheduler, combineLatest, first, map, merge, Observable, observeOn, shareReplay, Subject, Subscription } from 'rxjs';
-import { MockDataService } from './services/mock-data.service';
+import { ReactiveFluxCacheService } from './services/mock-data.service';
 import { Car, User } from './shared/types';
 
 @Component({
@@ -75,12 +75,12 @@ export class AppComponent implements OnDestroy {
   }
 
   constructor(
-    private readonly dataService: MockDataService
+    private readonly dataService: ReactiveFluxCacheService
   ) {
     this.subscriptions.add(
       combineLatest([this.selectedCar$, this.selectedClient$]).subscribe(([car, client]) => {
         if (car && client) {
-          this.dataService.assignCarToUser$(client.id, car.id);
+          this.dataService.assignCarToUser(client.id, car.id);
           this.unselectAll();
         }
       })
@@ -97,6 +97,12 @@ export class AppComponent implements OnDestroy {
         } else {
           this.userForm = { firstName: '', lastName: '', email: '' };
         }
+      })
+    );
+
+    this.subscriptions.add(
+      this.dataService.getErrors$().subscribe(error => {
+        console.error(error.message);
       })
     );
   }

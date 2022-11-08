@@ -79,6 +79,20 @@ export class AppComponent implements OnDestroy {
         }
       })
     );
+
+    this.subscriptions.add(
+      this.selectedClient$.subscribe(user => {
+        if (user) {
+          this.userForm = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          };
+        } else {
+          this.userForm = { firstName: '', lastName: '', email: ''  };
+        }
+      })
+    );
   }
 
   selectCar($event: Event, car: Car) {

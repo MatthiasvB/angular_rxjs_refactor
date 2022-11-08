@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { asyncScheduler, combineLatest, first, map, merge, Observable, observeOn, shareReplay, Subject, Subscription } from 'rxjs';
-import { ReactiveFluxCacheService } from './services/mock-data.service';
+import { ReactiveFluxCacheService } from './services/reactive-flux-cache.service';
 import { Car, User } from './shared/types';
 
 @Component({

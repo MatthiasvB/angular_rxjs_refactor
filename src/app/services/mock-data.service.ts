@@ -1,7 +1,6 @@
-import { state } from '@angular/animations';
 import { Injectable } from '@angular/core';
 import { delay, of, throwError } from 'rxjs';
-import { Car, State, User, UserCarBinding } from '../shared/types';
+import { Car, State, User } from '../shared/types';
 import { createUUID } from '../shared/utils';
 import { initialCars, initialUsers } from './mock-data';
 import { jumble } from './mock-data-jumbler';

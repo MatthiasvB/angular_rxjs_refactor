@@ -1,7 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { asyncScheduler, combineLatest, first, map, merge, Observable, observeOn, shareReplay, Subject, Subscription } from 'rxjs';
-import { MobilityService } from './services/mobility.service';
-import { Errors } from './shared/enums';
+import { MockDataService } from './services/mock-data.service';
 import { Car, User } from './shared/types';
 
 @Component({
@@ -31,9 +30,30 @@ export class AppComponent implements OnDestroy {
     observeOn(asyncScheduler)
   );
 
-  readonly clients$ = this.mobilityService.getAllClients$();
+  readonly clients$: Observable<{ user: User, cars: Car[] }[]> = combineLatest([
+    this.dataService.getAllUsersReactively$(),
+    this.dataService.getAllUserCarBindingsReactively$(),
+    this.dataService.getAllCarsReactively$()
+  ]).pipe(
+    map(([users, bindings, cars]) => {
+      return users.map(user => ({
+        user,
+        cars: bindings
+          .filter(binding => binding.userId === user.id)
+          .map(binding => cars.find(car => car.id === binding.carId))
+          .filter((car): car is Car => !!car),
+      }));
+    }),
+  );
 
-  readonly freeCars$ = this.mobilityService.getAllFreeCars$();
+  readonly freeCars$ = combineLatest([
+    this.dataService.getAllCarsReactively$(),
+    this.dataService.getAllUserCarBindingsReactively$(),
+  ]).pipe(
+    map(([cars, bindings]) => {
+      return cars.filter(car => !bindings.find(binding => binding.carId === car.id));
+    })
+  )
 
   private readonly subscriptions = new Subscription();
 
@@ -55,27 +75,27 @@ export class AppComponent implements OnDestroy {
   }
 
   constructor(
-    private readonly mobilityService: MobilityService
+    private readonly dataService: MockDataService
   ) {
-    this.subscriptions.add(this.mobilityService.getErrors$().subscribe(error => {
-      switch (error) {
-        case Errors.CannotFetchData:
-          alert('An error occurred while fetching data');
-          break;
-        case Errors.EmptyResponse:
-          alert('Received an unexpected empty response');
-          break;
-        case Errors.OutdatedData:
-          confirm('Data is outdated. Do you want to refresh?') && this.mobilityService.refresh();
-          break;
-      }
-    }));
-
     this.subscriptions.add(
       combineLatest([this.selectedCar$, this.selectedClient$]).subscribe(([car, client]) => {
         if (car && client) {
-          this.mobilityService.assignCarToUser(car.id, client.id);
+          this.dataService.assignCarToUser$(client.id, car.id);
           this.unselectAll();
+        }
+      })
+    );
+
+    this.subscriptions.add(
+      this.selectedClient$.subscribe(user => {
+        if (user) {
+          this.userForm = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          };
+        } else {
+          this.userForm = { firstName: '', lastName: '', email: '' };
         }
       })
     );
@@ -93,7 +113,7 @@ export class AppComponent implements OnDestroy {
 
   removeCarFromUser($event: MouseEvent, car: Car, user: User) {
     $event.stopPropagation();
-    this.mobilityService.removeCarFromUser(car.id, user.id);
+    this.dataService.unassignCarFromUser(user.id, car.id);
     this.unselectAll$$.next();
   }
 
@@ -105,9 +125,9 @@ export class AppComponent implements OnDestroy {
     }
     this.selectedClient$.pipe(first()).subscribe(user => {
       if (user) {
-        this.mobilityService.updateUser({ ...user, firstName, lastName, email })
+        this.dataService.updateUser({ ...user, firstName, lastName, email })
       } else {
-        this.mobilityService.addUser({ firstName, lastName, email })
+        this.dataService.addUser({ firstName, lastName, email })
       }
       this.selectedClient$$.next(undefined);
     });
@@ -118,7 +138,7 @@ export class AppComponent implements OnDestroy {
     $event.stopPropagation();
     this.selectedClient$.pipe(first()).subscribe(user => {
       if (user) {
-        this.mobilityService.removeUser(user);
+        this.dataService.deleteUser(user);
         this.selectedClient$$.next(undefined);
       }
     });
@@ -131,7 +151,7 @@ export class AppComponent implements OnDestroy {
     if (!make || !model || !year) {
       return;
     }
-    this.mobilityService.addCar({ make, model, year: +year })
+    this.dataService.addCar({ make, model, year: +year })
     this.carForm = { make: '', model: '', year: '' };
   }
 
@@ -139,7 +159,7 @@ export class AppComponent implements OnDestroy {
     $event.stopPropagation();
     this.selectedCar$.pipe(first()).subscribe(car => {
       if (car) {
-        this.mobilityService.removeCar(car.id);
+        this.dataService.deleteCar(car.id);
         this.selectedCar$$.next(undefined);
       }
     });
@@ -153,11 +173,6 @@ export class AppComponent implements OnDestroy {
     this.userForm = { firstName: '', lastName: '', email: '' };
     this.carForm = { make: '', model: '', year: '' };
     this.unselectAll$$.next();
-  }
-
-  refreshState() {
-    this.mobilityService.refresh();
-    this.unselectAll();
   }
 
   ngOnDestroy(): void {

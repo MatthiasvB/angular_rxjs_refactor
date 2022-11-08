@@ -1,7 +1,6 @@
-import { state } from '@angular/animations';
 import { Injectable } from '@angular/core';
-import { delay, of, throwError } from 'rxjs';
-import { Car, Create, State, User, UserCarBinding } from '../shared/types';
+import { BehaviorSubject, delay, distinctUntilChanged, first, map, of, throwError } from 'rxjs';
+import { Car, Create, State, User } from '../shared/types';
 import { createUUID } from '../shared/utils';
 import { initialCars, initialUsers } from './mock-data';
 import { jumble } from './mock-data-jumbler';
@@ -19,35 +18,40 @@ export class MockDataService {
     userCarBindings: [],
   };
 
+  private state$$ = new BehaviorSubject<State>(this.mockState);
+
   constructor() {
     setInterval(() => {
-      this.mockState = jumble(this.mockState)
-    }, 5_000);
-  }
+      this.state$$.pipe(first()).subscribe(state => {
+        this.mockState = jumble(state);
+        this.state$$.next(this.mockState);
+      });
+      }, 5_000);
+    }
 
   private delayedObs$<T>(data: T) {
-    return of(data).pipe(delay(this.DELAY_TIME));
-  }
+      return of(data).pipe(delay(this.DELAY_TIME));
+    }
 
   private error$(message: string) {
-    return throwError(() => new Error(message));
-  }
+      return throwError(() => new Error(message));
+    }
 
   getAllUsers() {
-    return this.delayedObs$(this.mockState.users);
-  }
+      return this.delayedObs$(this.mockState.users);
+    }
 
   getUserById(id: string) {
-    return this.delayedObs$(this.mockState.users.find(user => user.id === id));
-  }
+      return this.delayedObs$(this.mockState.users.find(user => user.id === id));
+    }
 
   addUser(user: Create<User>) {
-    if (this.mockState.users.find(u => u.email === user.email)) {
+      if(this.mockState.users.find(u => u.email === user.email)) {
       return this.error$(`User with email ${user.email} already exists`);
     }
     const id = createUUID();
     const newUser = { ...user, id };
-    this.mockState.users.push(newUser);
+    this.mockState.users = [...this.mockState.users, newUser];
     return this.delayedObs$(id);
   }
 
@@ -55,8 +59,8 @@ export class MockDataService {
     if (!user.id) {
       this.error$('User has no id');
     }
-    const index = this.mockState.users.findIndex(u => u.id === user.id);
-    this.mockState.users[index] = user;
+    this.mockState.users = this.mockState.users.map(usr => usr.id === user.id ? { ...user } : usr);
+    this.state$$.next(this.mockState);
     return this.delayedObs$({ ok: true });
   }
 
@@ -65,6 +69,8 @@ export class MockDataService {
       this.error$('User has no id');
     }
     this.mockState.users = this.mockState.users.filter(usr => usr.id !== user.id);
+    this.mockState.userCarBindings = this.mockState.userCarBindings.filter(binding => binding.userId !== user.id);
+    this.state$$.next(this.mockState);
     return this.delayedObs$({ ok: true });
   }
 
@@ -79,18 +85,20 @@ export class MockDataService {
   addCar(car: Create<Car>) {
     const id = createUUID();
     const newCar = { ...car, id };
-    this.mockState.cars.push(newCar);
+    this.mockState.cars = [...this.mockState.cars, newCar];
     return this.delayedObs$(id);
   }
 
   updateCar(car: Car) {
-    const index = this.mockState.cars.findIndex(c => c.id === car.id);
-    this.mockState.cars[index] = car;
+    this.mockState.cars = this.mockState.cars.map(c => c.id === car.id ? { ...car } : c);
+    this.state$$.next(this.mockState);
     return this.delayedObs$({ ok: true });
   }
 
   deleteCar(id: string) {
     this.mockState.cars = this.mockState.cars.filter(car => car.id !== id);
+    this.mockState.userCarBindings = this.mockState.userCarBindings.filter(binding => binding.carId !== id);
+    this.state$$.next(this.mockState);
     return this.delayedObs$({ ok: true });
   }
 
@@ -100,7 +108,7 @@ export class MockDataService {
     return this.delayedObs$([...cars]);
   }
 
-  assignCarToUser(userId: string, carId: string) {
+  assignCarToUser$(userId: string, carId: string) {
     const binding = this.mockState.userCarBindings.find(binding => binding.carId === carId);
     if (binding) {
       return this.error$('Car is already assigned to a user');
@@ -113,7 +121,8 @@ export class MockDataService {
     }
     const id = createUUID();
     const newBinding = { id, userId, carId };
-    this.mockState.userCarBindings.push(newBinding);
+    this.mockState.userCarBindings = [...this.mockState.userCarBindings, newBinding];
+    this.state$$.next(this.mockState);
     return this.delayedObs$(id);
   }
 
@@ -124,6 +133,7 @@ export class MockDataService {
     if (length === newLength) {
       return this.error$('Car is not assigned to user');
     }
+    this.state$$.next(this.mockState);
     return this.delayedObs$({ ok: true });
   }
 
@@ -142,6 +152,7 @@ export class MockDataService {
     if (length === newLength) {
       return this.error$('Binding not found');
     }
+    this.state$$.next(this.mockState);
     return this.delayedObs$({ ok: true });
   }
 
@@ -151,5 +162,29 @@ export class MockDataService {
       cars: [...this.mockState.cars],
       userCarBindings: [...this.mockState.userCarBindings],
     })
+  }
+
+  getAllUsersReactively$() {
+    return this.state$$.pipe(
+      map(state => state.users),
+      distinctUntilChanged(),
+      delay(this.DELAY_TIME),
+    );
+  }
+
+  getAllCarsReactively$() {
+    return this.state$$.pipe(
+      map(state => state.cars),
+      distinctUntilChanged(),
+      delay(this.DELAY_TIME),
+    );
+  }
+
+  getAllUserCarBindingsReactively$() {
+    return this.state$$.pipe(
+      map(state => state.userCarBindings),
+      distinctUntilChanged(),
+      delay(this.DELAY_TIME),
+    );
   }
 }

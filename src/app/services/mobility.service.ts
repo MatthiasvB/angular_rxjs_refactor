@@ -110,7 +110,7 @@ export class MobilityService {
   );
 
   private readonly carAssignedToUser$ = this.assignCarToUser$$.pipe(
-    switchMap(({ carId, userId }) => this.dataService.assignCarToUser(userId, carId).pipe(
+    switchMap(({ carId, userId }) => this.dataService.assignCarToUser$(userId, carId).pipe(
       switchMap(() => this.dataService.getCarById(carId).pipe(
         map(car => car ? { car, userId } : Errors.EmptyResponse),
         catchError(() => of(Errors.CannotFetchData)),

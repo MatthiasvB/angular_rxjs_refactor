@@ -144,7 +144,6 @@ export class AppComponent implements OnDestroy {
     });
   }
 
-
   carSubmit($event: Event) {
     $event.stopPropagation();
     const { make, model, year } = this.carForm;

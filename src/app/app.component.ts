@@ -273,15 +273,15 @@ export class AppComponent implements OnDestroy {
     shareReplay(1),
   );
 
-  private readonly errors$ = merge(
-    this.carRemoved$.pipe(filter(error => typeof error === 'number')),
-    this.carUpdated$.pipe(filter(error => typeof error === 'number')),
-    this.carAdded$.pipe(filter(error => typeof error === 'number')),
-    this.userAdded$.pipe(filter(error => typeof error === 'number')),
-    this.userUpdated$.pipe(filter(error => typeof error === 'number')),
-    this.userRemoved$.pipe(filter(error => typeof error === 'number')),
-    this.carRemovedFromUser$.pipe(filter(error => typeof error === 'number')),
-    this.carAssignedToUser$.pipe(filter(error => typeof error === 'number')),
+  private readonly errors$: Observable<Errors> = merge(
+    this.carRemoved$.pipe(filter((error): error is Errors => typeof error === 'number')),
+    this.carUpdated$.pipe(filter((error): error is Errors => typeof error === 'number')),
+    this.carAdded$.pipe(filter((error): error is Errors => typeof error === 'number')),
+    this.userAdded$.pipe(filter((error): error is Errors => typeof error === 'number')),
+    this.userUpdated$.pipe(filter((error): error is Errors => typeof error === 'number')),
+    this.userRemoved$.pipe(filter((error): error is Errors => typeof error === 'number')),
+    this.carRemovedFromUser$.pipe(filter((error): error is Errors => typeof error === 'number')),
+    this.carAssignedToUser$.pipe(filter((error): error is Errors => typeof error === 'number')),
   ).pipe(
     share()
   );

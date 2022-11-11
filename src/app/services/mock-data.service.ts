@@ -52,7 +52,7 @@ export class MockDataService {
 
   updateUser(user: User) {
     if (!user.id) {
-      this.error$('User has no id');
+      return this.error$('User has no id');
     }
     const index = this.mockState.users.findIndex(u => u.id === user.id);
     this.mockState.users[index] = user;
@@ -61,7 +61,7 @@ export class MockDataService {
 
   deleteUser(user: User) {
     if (!user.id) {
-      this.error$('User has no id');
+      return this.error$('User has no id');
     }
     this.mockState.users = this.mockState.users.filter(usr => usr.id !== user.id);
     return this.delayedObs$({ ok: true });

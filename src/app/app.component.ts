@@ -41,7 +41,7 @@ export class AppComponent implements OnDestroy {
       map(() => undefined)
     )
   ).pipe(
-    shareReplay()
+    shareReplay(1)
   );
   readonly selectedClient$: Observable<User | undefined> = merge(
     this.selectedClient$$,
@@ -55,7 +55,7 @@ export class AppComponent implements OnDestroy {
       map(() => undefined)
     )
   ).pipe(
-    shareReplay()
+    shareReplay(1)
   );
 
   private readonly refresh$: Observable<void> = merge(

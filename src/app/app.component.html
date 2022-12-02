@@ -1,31 +1,12 @@
 <h1>RxJS refactoring demo app</h1>
 <div class="side-by-side" (click)="unselectAll()">
   <div class="side-by-side__side">
-    <div *ngFor="let client of clients$ | async">
-      <div class="user" (click)="selectClient($event, client.user)"
-        [class.selected]="client.user.id === (selectedClient$ | async)?.id">
-        <div class="user__name">{{client.user.firstName}} {{client.user.lastName}}</div>
-        <div class="user__email">{{client.user.email}}</div>
-        <div class="cars">
-          <div *ngFor="let car of client.cars">
-            <div class="car" (click)="removeCarFromUser($event, car, client.user)">
-              <div class="car__name">{{car.make}}</div>
-              <div class="car__model">{{car.model}}</div>
-              <div class="car__year">{{car.year}}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="user-form" (click)="stopPropagation($event)">
-      <input type="text" placeholder="First name" #firstname [(ngModel)]="userForm.firstName">
-      <input type="text" placeholder="Last name" #lastname [(ngModel)]="userForm.lastName">
-      <input type="text" placeholder="E-mail" #email [(ngModel)]="userForm.email">
-      <button (click)="userSubmit($event)">{{ (selectedClient$ | async) ? "Update user" : "Add user" }}</button>
-      <button (click)="userRemove($event)" *ngIf="this.selectedClient$ | async">Remove user</button>
-    </div>
+    <app-user [clients]="clients$ | async" [unselect$]="unselectAll$$" (onAddUser)="addUser($event)"
+      (onEditUser)="editUser($event)" (onRemoveUser)="removeUser($event)"
+      (onRemoveCarFromUser)="removeCarFromUser($event)" (onSelectUser)="selectUser($event)"></app-user>
   </div>
   <div class="side-by-side__side">
-    <app-car [cars]="freeCars$ | async" (onCarSubmit)="carSubmit($event)" (onCarRemove)="carRemove($event)"></app-car>
+    <app-car [cars]="freeCars$ | async" [unselect$]="unselectAll$$" (onCarSubmit)="addCar($event)"
+      (onCarRemove)="carRemove($event)" (onSelectCar)="selectCar($event)"></app-car>
   </div>
 </div>

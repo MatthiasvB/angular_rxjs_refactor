@@ -8,28 +8,3 @@
     width: 50%;
   }
 }
-
-.user {
-  border: 1px solid #ccc;
-  cursor: pointer;
-  margin: 10px;
-  padding: 5px;
-}
-
-.cars {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: start;
-}
-
-.car {
-  border: 1px solid rgb(48, 75, 254);
-  cursor: pointer;
-  padding: 5px;
-  margin: 5px;
-}
-
-.selected {
-  border: 2px solid rgb(254, 48, 233);
-}

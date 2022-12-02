@@ -12,7 +12,7 @@ export class AppComponent implements OnDestroy {
 
   private readonly selectedCar$$ = new Subject<Car | undefined>();
   private readonly selectedClient$$ = new Subject<User | undefined>();
-  private readonly unselectAll$$ = new Subject<void>();
+  public readonly unselectAll$$ = new Subject<void>();
 
 
   readonly selectedCar$: Observable<Car | undefined | any> = merge(
@@ -57,17 +57,6 @@ export class AppComponent implements OnDestroy {
 
   private readonly subscriptions = new Subscription();
 
-  /*
-   * Forms are hard to use in a reactive way.
-   * They do not accept Observables as inputs.
-   * That's why we stick to imperative programming here.
-   */
-  userForm = {
-    firstName: '',
-    lastName: '',
-    email: ''
-  };
-
   constructor(
     private readonly dataService: ReactiveFluxCacheService
   ) {
@@ -81,65 +70,37 @@ export class AppComponent implements OnDestroy {
     );
 
     this.subscriptions.add(
-      this.selectedClient$.subscribe(user => {
-        if (user) {
-          this.userForm = {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email
-          };
-        } else {
-          this.userForm = { firstName: '', lastName: '', email: '' };
-        }
-      })
-    );
-
-    this.subscriptions.add(
       this.dataService.getErrors$().subscribe(error => {
         console.error(error.message);
       })
     );
   }
 
-  selectClient($event: Event, client: User) {
-    $event.stopPropagation();
-    this.selectedClient$$.next(client);
+  selectUser(user: User | undefined) {
+    this.selectedClient$$.next(user);
   }
 
-  removeCarFromUser($event: MouseEvent, car: Car, user: User) {
-    $event.stopPropagation();
-    this.dataService.unassignCarFromUser(user.id, car.id);
-    this.unselectAll$$.next();
+  selectCar(car: Car | undefined) {
+    this.selectedCar$$.next(car);
   }
 
-  userSubmit($event: Event) {
-    $event.stopPropagation();
-    const { firstName, lastName, email } = this.userForm;
-    if (!firstName || !lastName || !email) {
-      return;
-    }
-    this.selectedClient$.pipe(first()).subscribe(user => {
-      if (user) {
-        this.dataService.updateUser({ ...user, firstName, lastName, email })
-      } else {
-        this.dataService.addUser({ firstName, lastName, email })
-      }
-      this.selectedClient$$.next(undefined);
-    });
-    this.userForm = { firstName: '', lastName: '', email: '' };
+  addUser(user: Create<User>) {
+    this.dataService.addUser(user);
   }
 
-  userRemove($event: Event) {
-    $event.stopPropagation();
-    this.selectedClient$.pipe(first()).subscribe(user => {
-      if (user) {
-        this.dataService.deleteUser(user);
-        this.selectedClient$$.next(undefined);
-      }
-    });
+  editUser(user: User) {
+    this.dataService.updateUser(user);
   }
 
-  carSubmit(car: Create<Car>) {
+  removeUser(user: User) {
+    this.dataService.deleteUser(user);
+  }
+
+  removeCarFromUser(carAndUser: { carId: string, userId: string }) {
+    this.dataService.unassignCarFromUser(carAndUser.userId, carAndUser.carId);
+  }
+
+  addCar(car: Create<Car>) {
     this.dataService.addCar(car);
   }
 
@@ -152,7 +113,6 @@ export class AppComponent implements OnDestroy {
   }
 
   unselectAll() {
-    this.userForm = { firstName: '', lastName: '', email: '' };
     this.unselectAll$$.next();
   }
 

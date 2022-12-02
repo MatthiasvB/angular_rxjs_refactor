@@ -1,0 +1,17 @@
+<div class="cars">
+    <div *ngFor="let car of cars$ | async" class="car" (click)="selectCar($event, car)"
+        [class.selected]="car.id === (selectedCar$ | async)?.id">
+        <div class="car__name">{{car.make}}</div>
+        <div class="car__model">{{car.model}}</div>
+        <div class="car__year">{{car.year}}</div>
+    </div>
+</div>
+<div class="car-form" (click)="stopPropagation($event)">
+    <ng-container *ngIf="!(selectedCar$ | async)">
+        <input type="text" placeholder="Car make" [(ngModel)]="carForm.make">
+        <input type="text" placeholder="Car model" [(ngModel)]="carForm.model">
+        <input type="text" placeholder="Year" [(ngModel)]="carForm.year">
+        <button (click)="submitCar($event)">Add car</button>
+    </ng-container>
+    <button (click)="removeCar($event)" *ngIf="this.selectedCar$ | async">Remove car</button>
+</div>

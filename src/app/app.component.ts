@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { asyncScheduler, combineLatest, first, map, merge, Observable, observeOn, shareReplay, Subject, Subscription } from 'rxjs';
 import { ReactiveFluxCacheService } from './services/reactive-flux-cache.service';
-import { Car, User } from './shared/types';
+import { Car, Create, User } from './shared/types';
 
 @Component({
   selector: 'app-root',
@@ -68,12 +68,6 @@ export class AppComponent implements OnDestroy {
     email: ''
   };
 
-  carForm = {
-    make: '',
-    model: '',
-    year: ''
-  }
-
   constructor(
     private readonly dataService: ReactiveFluxCacheService
   ) {
@@ -105,11 +99,6 @@ export class AppComponent implements OnDestroy {
         console.error(error.message);
       })
     );
-  }
-
-  selectCar($event: Event, car: Car) {
-    $event.stopPropagation();
-    this.selectedCar$$.next(car);
   }
 
   selectClient($event: Event, client: User) {
@@ -150,24 +139,12 @@ export class AppComponent implements OnDestroy {
     });
   }
 
-  carSubmit($event: Event) {
-    $event.stopPropagation();
-    const { make, model, year } = this.carForm;
-    if (!make || !model || !year) {
-      return;
-    }
-    this.dataService.addCar({ make, model, year: +year })
-    this.carForm = { make: '', model: '', year: '' };
+  carSubmit(car: Create<Car>) {
+    this.dataService.addCar(car);
   }
 
-  carRemove($event: Event) {
-    $event.stopPropagation();
-    this.selectedCar$.pipe(first()).subscribe(car => {
-      if (car) {
-        this.dataService.deleteCar(car.id);
-        this.selectedCar$$.next(undefined);
-      }
-    });
+  carRemove(carId: string) {
+    this.dataService.deleteCar(carId);
   }
 
   stopPropagation($event: Event) {
@@ -176,7 +153,6 @@ export class AppComponent implements OnDestroy {
 
   unselectAll() {
     this.userForm = { firstName: '', lastName: '', email: '' };
-    this.carForm = { make: '', model: '', year: '' };
     this.unselectAll$$.next();
   }
 

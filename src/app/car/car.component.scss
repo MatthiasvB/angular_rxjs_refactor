@@ -1,0 +1,13 @@
+.cars {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: start;
+}
+
+.car {
+    border: 1px solid rgb(48, 75, 254);
+    cursor: pointer;
+    padding: 5px;
+    margin: 5px;
+}

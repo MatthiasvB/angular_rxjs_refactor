@@ -47,3 +47,8 @@ Extracts all complicated state management from the component into a new service,
 This branch assumes that our service has a real-time data update mechanism with the backend. State is at most as <q>old</q> as your ping. No need to refresh the state &hyphen; ever. 
 
 We also assume that the backend API has changed, and the data we receive becomes easier to integrate into our state. A real application may introduce further optimizations, but this is out of scope for this project.
+
+### `component-borders`
+In this branch, our `app.component` as been split into several components, each doing exactly one thing. 
+
+That means that now, data has to cross component borders. It's not straightforward how to do this in a reactive way. This branch will show you one method that works well, and that applies to optimally handling things like `@ViewChild`ren as well, without requiring any lifecycle hooks, except `OnDestroy`.
